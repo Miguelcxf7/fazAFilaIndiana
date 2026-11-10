@@ -16,7 +16,16 @@ final class SaleService {
                 $items[]=['id'=>(int)$id,'nome'=>$p['nome'],'quantidade'=>$qty,'preco'=>$price,'subtotal'=>$sub]; $total+=$sub;
             }
             $saleId=$this->sales->create($customerId,$items,$total); $this->db->commit(); return $saleId;
-        } catch(Throwable $e) { if($this->db->inTransaction())$this->db->rollBack(); throw $e; }
+        } catch (Throwable $e) {
+
+            if ($this->db->inTransaction()) {
+                $this->db->rollBack();
+            }
+        
+            error_log("ERRO ORIGINAL DA VENDA: " . $e->getMessage());
+        
+            throw $e;
+        }
     }
     public function cancel(int $id): void {
         $this->db->beginTransaction(); try { $this->sales->cancel($id); $this->sales->restoreStock($id); $this->db->commit(); } catch(Throwable $e) { if($this->db->inTransaction())$this->db->rollBack(); throw $e; }
